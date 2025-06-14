@@ -1,0 +1,7 @@
+    {
+	"name" : "Nigasuran",
+	"image" : "nigasuran.jpg",
+	"link" : "https://youtube.com/results?search_query=nigasuran",
+	"id" : "nigasuran",
+	"class" : "nigasuran"
+    }

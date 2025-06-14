@@ -1,0 +1,83 @@
+{
+  "tvshows": [
+    {
+      "name": "Shinchan",
+      "image": "images/shinchan.webp",
+      "link": "https://www.youtube.com/results?search_query=shinchan+episodes+malayalam",
+      "id": "shinchan",
+      "class": "shinchan"
+    },
+    {
+      "name": "Heidi",
+      "image": "images/heidi.png",
+      "link": "https://www.youtube.com/results?search_query=heidi+cartoon+episodes+malayalam",
+      "id": "heidi",
+      "class": "heidi"
+    },
+    {
+      "name": "Gloria",
+      "image": "images/gloria.jpg",
+      "link": "https://www.youtube.com/results?search_query=gloria%27s+house+cartoon+malayalam",
+      "id": "gloria",
+      "class": "gloria"
+    },
+    {
+      "name": "Oggy",
+      "image": "images/oggy.jpg",
+      "link": "https://www.youtube.com/results?search_query=oggy+and+the+cockroaches+malayalam",
+      "id": "oggy",
+      "class": "oggy"
+    }
+  ],
+  "apps": [
+    {
+      "name": "YouTube",
+      "image": "images/youtube.png",
+      "link": "https://www.youtube.com/",
+      "id": "youtube",
+      "class": "youtube"
+    },
+    {
+      "name": "Hotstar",
+      "image": "images/hotstar.webp",
+      "link": "https://www.hotstar.com/",
+      "id": "hotstar",
+      "class": "hotstar"
+    },
+    {
+      "name": "Reddit",
+      "image": "images/reddit.png",
+      "link": "https://www.reddit.com/",
+      "id": "reddit",
+      "class": "reddit"
+    },
+    {
+      "name": "Instagram",
+      "image": "images/insta.webp",
+      "link": "https://www.instagram.com/",
+      "id": "instagram",
+      "class": "instagram"
+    },
+    {
+      "name": "Mathrubhumi",
+      "image": "images/mathrubhumi.webp",
+      "link": "https://youtube.com/results?search_query=mathrubhumi+news+latest",
+      "id": "mathrubhumi",
+      "class": "mathrubhumi"
+    },
+    {
+      "name": "Flowers TV",
+      "image": "images/flowers.png",
+      "link": "https://www.youtube.com/results?search_query=flowers+tv+channel",
+      "id": "flowers",
+      "class": "flowers"
+    },
+    {
+	"name" : "Nigasuran",
+	"image" : "nigasuran.jpg",
+	"link" : "youtube.com/results?search_query=nigasuran"
+	"id" : "nigasuran"
+	"class" : "nigasuran"
+    }
+  ]
+}
