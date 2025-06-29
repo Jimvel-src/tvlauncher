@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Timer</title>
+    <style>
+        body {
+            background: #18191a;
+            color: #f1f1f1;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .timer-container {
+            position: relative;
+            background: #232526;
+            border-radius: 24px;
+            box-shadow: 0 4px 24px #000a;
+            padding: 40px 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 380px;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .timer-display {
+            font-size: 3.2rem;
+            margin: 32px 0;
+            letter-spacing: 2px;
+            transition: font-size 0.35s cubic-bezier(.4,0,.2,1);
+        }
+        .timer-display.enlarged {
+            font-size: 5.2rem;
+        }
+        .controls {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .controls input[type="number"] {
+            width: 80px;
+            padding: 12px 10px;
+            border-radius: 12px;
+            border: none;
+            background: #18191a;
+            color: #f1f1f1;
+            font-size: 1.5rem;
+            text-align: center;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 2px 8px #0003;
+        }
+        .controls label {
+            font-size: 1.1rem;
+            margin-right: 4px;
+            opacity: 0.7;
+        }
+        button {
+            background: #33363a;
+            color: #f1f1f1;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 32px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #0003;
+            position: relative;
+            overflow: hidden;
+        }
+        button:active {
+            background: #44474a;
+        }
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px #00bcd4aa;
+        }
+        .flood-anim {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0; /* Changed from 2 to 0 to place below UI */
+            background: #4b4b4b;
+            opacity: 0.18;
+            transform: translate(-50%, -50%) scale(0);
+            animation: flood 0.7s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        @keyframes flood {
+            to {
+                transform: translate(-50%, -50%) scale(12);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="timer-container" id="timerContainer">
+        <div class="controls">
+            <label for="hours">h</label>
+            <input id="hours" type="number" min="0" max="23" value="0" aria-label="Hours">
+            <label for="minutes">m</label>
+            <input id="minutes" type="number" min="0" max="59" value="0" aria-label="Minutes">
+            <label for="seconds">s</label>
+            <input id="seconds" type="number" min="0" max="59" value="30" aria-label="Seconds">
+        </div>
+        <div class="timer-display" id="timerDisplay">00:00:30</div>
+        <div>
+            <button id="backBtn">← Back</button>
+            <button id="startBtn">Start</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+        <!-- Audio elements for sound effects -->
+        <audio id="tickSound" src="clock-tick.mp3"></audio>
+        <audio id="ringSound" src="clock-ring.mp3"></audio>
+    </div>
+    <script>
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const tickSound = document.getElementById('tickSound');
+        const ringSound = document.getElementById('ringSound');
+        const timerContainer = document.getElementById('timerContainer');
+
+        let timer = null;
+        let totalSeconds = 30;
+        let remainingSeconds = 30;
+        let running = false;
+        let paused = false;
+
+        function pad(n) {
+            return n.toString().padStart(2, '0');
+        }
+
+        function updateDisplay(secs) {
+            const h = Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
+            const s = secs % 60;
+            timerDisplay.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+
+        function getInputSeconds() {
+            return (
+                parseInt(hoursInput.value, 10) * 3600 +
+                parseInt(minutesInput.value, 10) * 60 +
+                parseInt(secondsInput.value, 10)
+            );
+        }
+
+        function setInputsDisabled(disabled) {
+            hoursInput.disabled = disabled;
+            minutesInput.disabled = disabled;
+            secondsInput.disabled = disabled;
+        }
+
+        function floodAnimation(e) {
+            // Animate from button center, fill timerContainer
+            const rect = timerContainer.getBoundingClientRect();
+            const btnRect = startBtn.getBoundingClientRect();
+            const x = (btnRect.left + btnRect.width / 2) - rect.left;
+            const y = (btnRect.top + btnRect.height / 2) - rect.top;
+            const flood = document.createElement('span');
+            flood.className = 'flood-anim';
+            flood.style.left = `${x}px`;
+            flood.style.top = `${y}px`;
+            flood.style.width = flood.style.height = `${rect.width * 2}px`;
+            timerContainer.appendChild(flood);
+            setTimeout(() => flood.remove(), 700);
+        }
+
+function playTick() {
+    // Only play tick if timer is running and not paused
+    if (!running || paused) return;
+    try {
+        if (remainingSeconds > 8) {
+            tickSound.currentTime = 0;
+            tickSound.play().catch(()=>{});
+        } else {
+            if (tickSound.paused) {
+                tickSound.currentTime = 0;
+                tickSound.play().catch(()=>{});
+            }
+        }
+    } catch (e) {}
+}
+
+        function startTimer(e) {
+            if (!running && !paused) {
+                totalSeconds = getInputSeconds();
+                if (isNaN(totalSeconds) || totalSeconds <= 0) return;
+                remainingSeconds = totalSeconds;
+                updateDisplay(remainingSeconds);
+                running = true;
+                paused = false;
+                setInputsDisabled(true);
+                startBtn.textContent = "Pause";
+                timerDisplay.classList.add('enlarged');
+                floodAnimation(e);
+                timer = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateDisplay(remainingSeconds);
+                        playTick();
+                    }
+if (remainingSeconds === 0) {
+    clearInterval(timer);
+    // Stop tick sound immediately if playing
+    tickSound.pause();
+    tickSound.currentTime = 0;
+    ringSound.currentTime = 0;
+    ringSound.play();
+    running = false;
+    paused = false;
+    setInputsDisabled(false);
+    startBtn.textContent = "Start";
+    timerDisplay.classList.remove('enlarged');
+}
+                }, 1000);
+                } else if (running && !paused) {
+                    clearInterval(timer);
+                    paused = true;
+                    running = false;
+                    startBtn.textContent = "Resume";
+                    timerDisplay.classList.remove('enlarged');
+                floodAnimation(e);
+                // Stop tick sound immediately
+                tickSound.pause();
+                tickSound.currentTime = 0;
+
+            } else if (paused) {
+                // Resume
+                running = true;
+                paused = false;
+                startBtn.textContent = "Pause";
+                timerDisplay.classList.add('enlarged');
+                floodAnimation(e);
+                timer = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateDisplay(remainingSeconds);
+                        playTick();
+                    }
+if (remainingSeconds === 0) {
+    clearInterval(timer);
+    // Stop tick sound immediately if playing
+    tickSound.pause();
+    tickSound.currentTime = 0;
+    ringSound.currentTime = 0;
+    ringSound.play();
+    running = false;
+    paused = false;
+    setInputsDisabled(false);
+    startBtn.textContent = "Start";
+    timerDisplay.classList.remove('enlarged');
+}
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            running = false;
+            paused = false;
+            setInputsDisabled(false);
+            startBtn.textContent = "Start";
+            timerDisplay.classList.remove('enlarged');
+            updateDisplay(getInputSeconds());
+            // Stop tick sound immediately
+            tickSound.pause();
+            tickSound.currentTime = 0;
+        }
+
+        function clampInputs() {
+            if (hoursInput.value > 23) hoursInput.value = 23;
+            if (minutesInput.value > 59) minutesInput.value = 59;
+            if (secondsInput.value > 59) secondsInput.value = 59;
+        }
+
+        hoursInput.addEventListener('input', () => {
+            clampInputs();
+            updateDisplay(getInputSeconds());
+        });
+        minutesInput.addEventListener('input', () => {
+            clampInputs();
+            updateDisplay(getInputSeconds());
+        });
+        secondsInput.addEventListener('input', () => {
+            clampInputs();
+            updateDisplay(getInputSeconds());
+        });
+
+        startBtn.addEventListener('click', startTimer);
+        startBtn.addEventListener('mousedown', floodAnimation);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Initialize display
+        updateDisplay(getInputSeconds());
+        tickSound.load();
+        ringSound.load();
+
+                // Back button navigation
+        document.getElementById('backBtn').onclick = function() {
+            window.location.href = 'custom.html';
+        };
+    </script>
