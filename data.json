@@ -73,11 +73,11 @@
       "class": "flowers"
     },
     {
-	"name" : "Nigasuran",
-	"image" : "nigasuran.jpg",
-	"link" : "youtube.com/results?search_query=nigasuran"
-	"id" : "nigasuran"
-	"class" : "nigasuran"
+      "name": "Timer",
+      "image": "images/timer.png",
+      "link": "timer.html",
+      "id": "timer",
+      "class": "timer"
     }
   ]
 }
